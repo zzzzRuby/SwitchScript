@@ -1,0 +1,3 @@
+for unlimited
+    press 100 a
+end

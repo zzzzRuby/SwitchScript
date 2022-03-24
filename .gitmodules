@@ -1,3 +1,6 @@
 [submodule "third_party/lufa"]
 	path = third_party/lufa
 	url = git@github.com:abcminiuser/lufa.git
+[submodule "third_party/imgui/imgui"]
+	path = third_party/imgui/imgui
+	url = git@github.com:ocornut/imgui.git

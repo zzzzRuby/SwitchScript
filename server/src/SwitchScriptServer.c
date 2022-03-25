@@ -18,10 +18,6 @@ exception of Home and Capture. Descriptor modification allows us to unlock
 these buttons for our use.
 */
 
-#include <avr/io.h>
-#include <avr/wdt.h>
-#include <avr/power.h>
-#include <avr/interrupt.h>
 #include <string.h>
 
 #include <LUFA/Drivers/USB/USB.h>
@@ -30,35 +26,13 @@ these buttons for our use.
 #include <LUFA/Drivers/Board/Buttons.h>
 #include <LUFA/Platform/Platform.h>
 
+#include <avr/io.h>
+#include <avr/wdt.h>
+#include <avr/power.h>
+#include <avr/interrupt.h>
+
 #include "Descriptors.h"
-#include "Arduino/Arduino.h"
-
-// Joystick HID report structure. We have an input and an output.
-typedef struct {
-	uint16_t Button; // 16 buttons; see JoystickButtons_t for bit mapping
-	uint8_t  DPad;   // HAT switch; one nibble w/ unused nibble
-	uint8_t  LX;     // Left  Stick X
-	uint8_t  LY;     // Left  Stick Y
-	uint8_t  RX;     // Right Stick X
-	uint8_t  RY;     // Right Stick Y
-	uint8_t  VendorSpec;
-} USB_JoystickReport_Input_t;
-
-typedef struct {
-	uint16_t Button; // 16 buttons; see JoystickButtons_t for bit mapping
-	uint8_t  HAT;    // HAT switch; one nibble w/ unused nibble
-	uint8_t  LX;     // Left  Stick X
-	uint8_t  LY;     // Left  Stick Y
-	uint8_t  RX;     // Right Stick X
-	uint8_t  RY;     // Right Stick Y
-} USB_JoystickReport_Output_t;
-
-static unsigned long lastMillis = 0;
-
-// Prepare the next report for the host.
-static void GetNextReport(USB_JoystickReport_Input_t* const ReportData)
-{
-}
+#include "VM.h"
 
 // Configures hardware and peripherals, such as the USB peripherals.
 static void SetupHardware(void) {
@@ -71,14 +45,14 @@ static void SetupHardware(void) {
 
 	// The USB stack should be initialized last.
 	USB_Init();
-
-	init();
 }
+
+void EVENT_USB_Device_Reset(void) {}
+
+void EVENT_USB_Device_StartOfFrame(void) {}
 
 // Fired to indicate that the device is enumerating.
-void EVENT_USB_Device_Connect(void) {
-	lastMillis = millis();
-}
+void EVENT_USB_Device_Connect(void) {}
 
 // Fired to indicate that the device is no longer connected to a host.
 void EVENT_USB_Device_Disconnect(void) {}
@@ -126,17 +100,10 @@ static void HID_Task(void) {
 	// We first check to see if the host is ready to accept data.
 	if (Endpoint_IsINReady())
 	{
-		// We'll create an empty report.
-		USB_JoystickReport_Input_t JoystickInputData;
-		// We'll then populate this report with what we want to send to the host.
-		GetNextReport(&JoystickInputData);
 		// Once populated, we can output this data to the host. We do this by first writing the data to the control stream.
-		while(Endpoint_Write_Stream_LE(&JoystickInputData, sizeof(JoystickInputData), NULL) != ENDPOINT_RWSTREAM_NoError);
+		while(Endpoint_Write_Stream_LE(VM_State(), sizeof(USB_JoystickReport_Input_t), NULL) != ENDPOINT_RWSTREAM_NoError);
 		// We then send an IN packet on this endpoint.
 		Endpoint_ClearIN();
-
-		/* Clear the report data afterwards */
-		// memset(&JoystickInputData, 0, sizeof(JoystickInputData));
 	}
 }
 
@@ -147,9 +114,11 @@ int main(void) {
 	// We'll then enable global interrupts for our use.
 	GlobalInterruptEnable();
 	// Once that's done, we'll enter an infinite loop.
+	VM_Init();
 
 	for (;;)
 	{
+		VM_Update();
 		// We need to run our task to process and deliver data for our IN and OUT endpoints.
 		HID_Task();
 		// We also need to run the main USB management task.

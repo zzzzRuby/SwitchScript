@@ -2,10 +2,9 @@
 #include <filesystem>
 
 #include <vm.h>
-#include <vm/limits.h>
+#include <vm_limits.h>
 
-int main(int argc, char** argv)
-{
+int main(int argc, char** argv) {
 	if (argc < 2)
 		return -1;
 
@@ -23,12 +22,11 @@ int main(int argc, char** argv)
 	fin.read((char*)code, scriptSize);
 
 	VM_Start();
-	while (true)
-	{
+	while (true) {
+		VM_Update();
+
 		if (VM_IsTerminated())
 			break;
-
-		VM_Update();
 	}
 
 	return 0;

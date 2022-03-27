@@ -123,11 +123,10 @@ static void HID_Task(void) {
 int main(void) {
 	// We'll start by performing hardware and peripheral setup.
 	SetupHardware();
-	
-	VM_Init();
 	// We'll then enable global interrupts for our use.
 	GlobalInterruptEnable();
 	// Once that's done, we'll enter an infinite loop.
+	VM_Init();
 
 	VM_Start();
 	for (;;)

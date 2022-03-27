@@ -8,10 +8,10 @@ target_include_directories(SwitchScriptVM PUBLIC include)
 set_target_properties(SwitchScriptVM PROPERTIES C_STANDARD 11)
 
 if (SWITCH_SCRIPT_BUILD_HOST)
+    enable_language(CXX)
+
     target_sources(SwitchScriptVM PRIVATE src/emulator/vm_millis.c)
     target_compile_definitions(SwitchScriptVM PUBLIC SSVM_EMULATOR)
-
-    enable_language(CXX)
 
     add_executable(SwitchScriptVMEmulator
         src/emulator/main.cpp)

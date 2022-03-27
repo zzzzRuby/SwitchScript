@@ -87,9 +87,9 @@ static int8_t VM_ShouldJump(JumpMode mode, int8_t compareResult) {
         case JumpMode_EQ:
             return compareResult == 0;
         case JumpMode_LE:
-            return compareResult == 0 || compareResult == 2;
+            return compareResult == 0 || compareResult == 3;
         case JumpMode_LT:
-            return compareResult == 2;
+            return compareResult == 3;
         default:
             return 0;
     }
@@ -210,7 +210,7 @@ void VM_Update(void) {
             else if (aluOpA == aluOpB)
                 g_VM.CompareResult = 0;
             else if (aluOpA < aluOpB)
-                g_VM.CompareResult = 2;
+                g_VM.CompareResult = 3;
             currentPtr += 1;
             break;
         }

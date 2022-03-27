@@ -6,3 +6,4 @@
 /server/*.lss
 /server/*.map
 /server/*.sym
+/build/*

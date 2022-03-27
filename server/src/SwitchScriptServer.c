@@ -31,8 +31,20 @@ these buttons for our use.
 #include <avr/power.h>
 #include <avr/interrupt.h>
 
+#include <vm.h>
+
 #include "Descriptors.h"
-#include "VM.h"
+
+// The output is structured as a mirror of the input.
+// This is based on initial observations of the Pokken Controller.
+typedef struct {
+	uint16_t Button; // 16 buttons; see JoystickButtons_t for bit mapping
+	uint8_t  DPad;   // HAT switch; one nibble w/ unused nibble
+	uint8_t  LX;     // Left  Stick X
+	uint8_t  LY;     // Left  Stick Y
+	uint8_t  RX;     // Right Stick X
+	uint8_t  RY;     // Right Stick Y
+} USB_JoystickReport_Output_t;
 
 // Configures hardware and peripherals, such as the USB peripherals.
 static void SetupHardware(void) {
@@ -101,7 +113,7 @@ static void HID_Task(void) {
 	if (Endpoint_IsINReady())
 	{
 		// Once populated, we can output this data to the host. We do this by first writing the data to the control stream.
-		while(Endpoint_Write_Stream_LE(VM_State(), sizeof(USB_JoystickReport_Input_t), NULL) != ENDPOINT_RWSTREAM_NoError);
+		while(Endpoint_Write_Stream_LE(VM_State(), sizeof(JoystickState), NULL) != ENDPOINT_RWSTREAM_NoError);
 		// We then send an IN packet on this endpoint.
 		Endpoint_ClearIN();
 	}
@@ -111,11 +123,13 @@ static void HID_Task(void) {
 int main(void) {
 	// We'll start by performing hardware and peripheral setup.
 	SetupHardware();
+	
+	VM_Init();
 	// We'll then enable global interrupts for our use.
 	GlobalInterruptEnable();
 	// Once that's done, we'll enter an infinite loop.
-	VM_Init();
 
+	VM_Start();
 	for (;;)
 	{
 		VM_Update();

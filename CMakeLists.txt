@@ -9,4 +9,8 @@ function(switch_script_require_package package_name)
     add_subdirectory(${SWITCH_SCRIPT_THIRD_PARTY_SOURCE_DIR}/${package_name} ${SWITCH_SCRIPT_THIRD_PARTY_BINARY_DIR}/${package_name})
 endfunction()
 
+set(SWITCH_SCRIPT_BUILD_HOST on)
+
+add_subdirectory(vm)
 add_subdirectory(client)
+add_subdirectory(compiler)

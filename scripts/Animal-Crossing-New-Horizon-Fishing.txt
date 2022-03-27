@@ -1,5 +1,0 @@
-for unlimited
-	if fish-hooked-in-animal-crossing-new-horizon
-		press default a
-	end
-end

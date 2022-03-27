@@ -17,20 +17,20 @@ typedef struct {
 } JoystickState;
 
 typedef enum {
-	Button_Y       = 0x01,
-	Button_B       = 0x02,
-	Button_A       = 0x04,
-	Button_X       = 0x08,
-	Button_L       = 0x10,
-	Button_R       = 0x20,
-	Button_ZL      = 0x40,
-	Button_ZR      = 0x80,
-	Button_Select  = 0x100,
-	Button_Start   = 0x200,
-	Button_LClick  = 0x400,
-	Button_RClick  = 0x800,
-	Button_Home    = 0x1000,
-	Button_Capture = 0x2000,
+	ButtonValue_Y       = 0x01,
+	ButtonValue_B       = 0x02,
+	ButtonValue_A       = 0x04,
+	ButtonValue_X       = 0x08,
+	ButtonValue_L       = 0x10,
+	ButtonValue_R       = 0x20,
+	ButtonValue_ZL      = 0x40,
+	ButtonValue_ZR      = 0x80,
+	ButtonValue_Select  = 0x100,
+	ButtonValue_Start   = 0x200,
+	ButtonValue_LClick  = 0x400,
+	ButtonValue_RClick  = 0x800,
+	ButtonValue_Home    = 0x1000,
+	ButtonValue_Capture = 0x2000,
 } ButtonValue;
 
 typedef enum {

@@ -18,10 +18,10 @@ F_USB          = $(F_CPU)
 OPTIMIZATION   = s
 TARGET         = SwitchScriptServer
 SRC            = src/SwitchScriptServer.c src/Descriptors.c ../vm/src/vm.c ../vm/src/avr/vm_millis.c $(LUFA_SRC_USB)
-LUFA_PATH      = ../third_party/lufa/LUFA
+LUFA_PATH      = ../third_party/lufa/lufa/LUFA
 CC_FLAGS       = -DUSE_LUFA_CONFIG_HEADER -Iinclude/ -I../vm/include/ -fstack-usage
 LD_FLAGS       =
-OBJDIR         = build
+OBJDIR         = ../build/server/$(MCU)
 SUDO           =
 
 all:

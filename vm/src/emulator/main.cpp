@@ -1,8 +1,15 @@
 #include <fstream>
 #include <filesystem>
+#include <signal.h>
 
 #include <vm.h>
 #include <vm_limits.h>
+
+static volatile bool g_Stop = false;
+
+void signalHandler(int sig) {
+	if (sig == SIGINT) g_Stop = true;
+}
 
 int main(int argc, char** argv) {
 	if (argc < 2)
@@ -22,7 +29,12 @@ int main(int argc, char** argv) {
 	fin.read((char*)code, scriptSize);
 
 	VM_Start();
+
+	signal(SIGINT, signalHandler);
 	while (true) {
+		if (g_Stop)
+			VM_Stop();
+
 		VM_Update();
 
 		if (VM_IsTerminated())

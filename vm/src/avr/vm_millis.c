@@ -70,6 +70,6 @@ void VM_MilliSeconds_Init(void) {
 #elif defined(TIMSK0) && defined(TOIE0)
 	sbi(TIMSK0, TOIE0);
 #else
-	#error	Timer 0 overflow interrupt not set correctly
+	#error Timer 0 overflow interrupt not set correctly
 #endif
 }

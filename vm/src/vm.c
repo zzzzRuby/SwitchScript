@@ -3,7 +3,7 @@
 #include <string.h>
 
 #if (!defined(HeapSize) || !defined(ExeSize))
-#   error "Check mcu support!"
+#   error Check mcu support!
 #endif
 
 uint32_t VM_MilliSeconds(void);
@@ -22,7 +22,7 @@ typedef struct {
     int8_t Signal : 1;
 	int8_t CompareResult : 2;
 	Halt HaltType : 8;
-    uint16_t HaltEndTime;
+    uint32_t HaltEndTime;
 	JoystickState State;
 	uint8_t Heap[HeapSize];
 	uint8_t Script[ExeSize];
@@ -41,12 +41,16 @@ static void VM_Init_Internal(void) {
     g_VM.CompareResult = 0;
     g_VM.HaltEndTime = 0;
     
-	g_VM.State.Button = 0;
-	g_VM.State.DPad = DPadValue_None;
-	g_VM.State.LX = g_VM.State.LY = g_VM.State.RX = g_VM.State.RY = 0x80;
-    g_VM.State.VendorSpec = 0;
+    VM_State_Init(&g_VM.State);
 
     memset(g_VM.Heap, 0, HeapSize);
+}
+
+void VM_State_Init(JoystickState* state) {
+    state->Button = 0;
+    state->DPad = DPadValue_None;
+    state->LX = state->LY = state->RX = state->RY = 0x80;
+    state->VendorSpec = 0;
 }
 
 void VM_Init(void) {
@@ -55,7 +59,7 @@ void VM_Init(void) {
     memset(g_VM.Script, 0, ExeSize);
 }
 
-uint8_t* VM_InitForLoad(void) {
+uint8_t* VM_PrepareForLoad(void) {
     VM_Init_Internal();
     return g_VM.Script;
 }
@@ -87,9 +91,9 @@ static int8_t VM_ShouldJump(JumpMode mode, int8_t compareResult) {
         case JumpMode_EQ:
             return compareResult == 0;
         case JumpMode_LE:
-            return compareResult == 0 || compareResult == 3;
+            return compareResult == 0 || compareResult == -1;
         case JumpMode_LT:
-            return compareResult == 3;
+            return compareResult == -1;
         default:
             return 0;
     }
@@ -99,16 +103,14 @@ void VM_Update(void) {
     VMCommand command = { 0 };
 	int16_t currentPtr;
 
-    _Static_assert(sizeof(VMCommand) == 1, "check VMCommand size");
-
 	switch(g_VM.HaltType)
 	{
 		case Halt_None:
 			break;
 		case Halt_Stop:
 			return;
-		case Halt_Sleep:
-            if (g_VM.HaltEndTime < VM_MilliSeconds())
+        case Halt_Sleep:
+            if (g_VM.HaltEndTime >= VM_MilliSeconds())
                 return;
             g_VM.HaltType = Halt_None;
             break;
@@ -133,21 +135,21 @@ void VM_Update(void) {
             if (command.desc.setButtonOp.setDPad) {
                 g_VM.State.DPad = command.desc.setButtonOp.dpad;
             }
-            g_VM.State.Button |= (((uint16_t)g_VM.Script[currentPtr + 1]) & ((uint16_t)g_VM.Script[currentPtr + 2] << 8));
+            g_VM.State.Button |= *((uint16_t*)&g_VM.Script[currentPtr + 1]);
             currentPtr += 3;
             break;
         case Op_UnsetButton:
             if (command.desc.unsetButtonOp.unsetDPad) {
                 g_VM.State.DPad = DPadValue_None;
             }
-            g_VM.State.Button &= ~(((uint16_t)g_VM.Script[currentPtr + 1]) & ((uint16_t)g_VM.Script[currentPtr + 2] << 8));
+            g_VM.State.Button &= ~*((uint16_t*)&g_VM.Script[currentPtr + 1]);
             currentPtr += 3;
             break;
         case Op_JumpIf:
             if (VM_ShouldJump(command.desc.jumpIfOp.mode, g_VM.CompareResult))
-                currentPtr = (((uint16_t)g_VM.Script[currentPtr + 1]) & ((uint16_t)g_VM.Script[currentPtr + 2] << 8));
+                currentPtr = *((int16_t*)&g_VM.Script[currentPtr + 1]);
             else
-                currentPtr += 1;
+                currentPtr += 3;
             break;
 
 #define VM_LoadAluOperator() \
@@ -210,7 +212,7 @@ void VM_Update(void) {
             else if (aluOpA == aluOpB)
                 g_VM.CompareResult = 0;
             else if (aluOpA < aluOpB)
-                g_VM.CompareResult = 3;
+                g_VM.CompareResult = -1;
             currentPtr += 1;
             break;
         }
@@ -230,15 +232,19 @@ void VM_Update(void) {
             break;
         case Op_Halt:
             g_VM.HaltType = Halt_Sleep;
-            g_VM.HaltEndTime = VM_MilliSeconds() + (((uint16_t)g_VM.Script[currentPtr + 1]) & ((uint16_t)g_VM.Script[currentPtr + 2] << 8));
+            g_VM.HaltEndTime = VM_MilliSeconds() + *((uint16_t*)&g_VM.Script[currentPtr + 1]);
             currentPtr += 3;
             break;
         case Op_Nop:
             currentPtr += 1;
             break;
-        case Op_Reversed:
-            currentPtr += 1;
+        case Op_Set: {
+            uint16_t val = *((int16_t*)&g_VM.Script[currentPtr + 2]);
+            uint8_t resultAddress = g_VM.Script[currentPtr + 1];
+            *((int16_t*)(&g_VM.Heap[resultAddress])) = val;
+            currentPtr += 4;
             break;
+        }
         case Op_Extern:
             currentPtr += 1;
             break;

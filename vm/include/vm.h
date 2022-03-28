@@ -70,7 +70,7 @@ typedef enum {
 	Op_HaltUntilSignal = 11,
 	Op_Halt = 12,
 	Op_Nop = 13,
-	Op_Reversed = 14,
+	Op_Set = 14,
 	Op_Extern = 15,
 } Op;
 
@@ -118,11 +118,20 @@ typedef union {
 	};
 } VMCommand;
 
+#if defined(__cplusplus)
+static_assert
+#else
+_Static_assert
+#endif
+(sizeof(VMCommand) == 1, "check VMCommand size");
+
 JoystickState* VM_State(void);
+
+void VM_State_Init(JoystickState* state);
 
 void VM_Init(void);
 
-uint8_t* VM_InitForLoad(void);
+uint8_t* VM_PrepareForLoad(void);
 
 void VM_Start(void);
 

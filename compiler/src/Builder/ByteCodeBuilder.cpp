@@ -54,14 +54,6 @@ uint16_t ByteCodeBuilder::PC()
 	return (uint16_t)(m_Code.tellp() - m_OriginPos);
 }
 
-void ByteCodeBuilder::NewTerminate()
-{
-	VMCommand command = { 0 };
-	command.opCode = Op_Terminate;
-
-	streamWrite(m_Code, command);
-}
-
 void ByteCodeBuilder::NewSetButton(ButtonValue flags, std::optional<DPadValue> dpad)
 {
 	VMCommand command = { 0 };
@@ -177,10 +169,48 @@ void ByteCodeBuilder::NewCompare(std::variant<uint8_t, int16_t> a, std::variant<
 	}
 }
 
+void ByteCodeBuilder::NewPress(ButtonValue flags, uint16_t length, std::optional<DPadValue> dpad)
+{
+	VMCommand command = { 0 };
+	command.opCode = Op_Press;
+	if (dpad.has_value())
+	{
+		command.desc.pressOp.dpad = dpad.value();
+	}
+	else
+	{
+		command.desc.pressOp.dpad = DPadValue_None;
+	}
+	uint16_t extend = (uint16_t)flags;
+
+	streamWrite(m_Code, command);
+	streamWrite(m_Code, extend);
+	streamWrite(m_Code, length);
+}
+
+void ByteCodeBuilder::NewTerminate()
+{
+	VMCommand command = { 0 };
+	command.opCode = Op_Extern;
+	command.desc.externOp.externCode = ExternOp_Terminate;
+
+	streamWrite(m_Code, command);
+}
+
+void ByteCodeBuilder::NewNop()
+{
+	VMCommand command = { 0 };
+	command.opCode = Op_Extern;
+	command.desc.externOp.externCode = ExternOp_Nop;
+
+	streamWrite(m_Code, command);
+}
+
 void ByteCodeBuilder::NewSetStick(uint8_t lx, uint8_t ly, uint8_t rx, uint8_t ry)
 {
 	VMCommand command = { 0 };
-	command.opCode = Op_SetStick;
+	command.opCode = Op_Extern;
+	command.desc.externOp.externCode = ExternOp_SetStick;
 
 	streamWrite(m_Code, command);
 	streamWrite(m_Code, lx);
@@ -192,7 +222,8 @@ void ByteCodeBuilder::NewSetStick(uint8_t lx, uint8_t ly, uint8_t rx, uint8_t ry
 void ByteCodeBuilder::NewHaltUntilSignal()
 {
 	VMCommand command = { 0 };
-	command.opCode = Op_HaltUntilSignal;
+	command.opCode = Op_Extern;
+	command.desc.externOp.externCode = ExternOp_HaltUntilSignal;
 
 	streamWrite(m_Code, command);
 }
@@ -200,26 +231,29 @@ void ByteCodeBuilder::NewHaltUntilSignal()
 void ByteCodeBuilder::NewHalt(uint16_t sleepTime)
 {
 	VMCommand command = { 0 };
-	command.opCode = Op_Halt;
+	command.opCode = Op_Extern;
+	command.desc.externOp.externCode = ExternOp_Halt;
 
 	streamWrite(m_Code, command);
 	streamWrite(m_Code, sleepTime);
 }
 
-void ByteCodeBuilder::NewNop()
-{
-	VMCommand command = { 0 };
-	command.opCode = Op_Nop;
-
-	streamWrite(m_Code, command);
-}
-
 void ByteCodeBuilder::NewSet(int16_t value, uint8_t address)
 {
 	VMCommand command = { 0 };
-	command.opCode = Op_Set;
+	command.opCode = Op_Extern;
+	command.desc.externOp.externCode = ExternOp_Set;
 
 	streamWrite(m_Code, command);
 	streamWrite(m_Code, address);
 	streamWrite(m_Code, value);
+}
+
+void ByteCodeBuilder::NewResetTimer()
+{
+	VMCommand command = { 0 };
+	command.opCode = Op_Extern;
+	command.desc.externOp.externCode = ExternOp_ResetTimer;
+
+	streamWrite(m_Code, command);
 }

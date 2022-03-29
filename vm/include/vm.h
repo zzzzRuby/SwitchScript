@@ -56,7 +56,7 @@ typedef enum {
 } JumpMode;
 
 typedef enum {
-	Op_Terminate = 0,
+	Op_Extern = 0,
 	Op_SetButton = 1,
 	Op_UnsetButton = 2,
 	Op_JumpIf = 3,
@@ -66,16 +66,17 @@ typedef enum {
 	Op_Div = 7,
 	Op_Mod = 8,
 	Op_Compare = 9,
-	Op_SetStick = 10,
-	Op_HaltUntilSignal = 11,
-	Op_Halt = 12,
-	Op_Nop = 13,
-	Op_Set = 14,
-	Op_Extern = 15,
+	Op_Press = 10,
 } Op;
 
 typedef enum {
-    ExternOp_Nop
+	ExternOp_Terminate = 0,
+	ExternOp_Nop = 1,
+	ExternOp_SetStick = 2,
+	ExternOp_HaltUntilSignal = 3,
+	ExternOp_Halt = 4,
+	ExternOp_Set = 5,
+	ExternOp_ResetTimer = 6,
 } ExternOp;
 
 typedef union {
@@ -97,6 +98,11 @@ typedef union {
 				int8_t reserved : 3;
 				int8_t unsetDPad : 1;
 			} unsetButtonOp;
+
+			struct {
+				uint8_t opCode : 4; // Op
+				uint8_t dpad : 4; // DPadValue Or DPadValue_None
+			} pressOp;
 
 			struct {
 				uint8_t opCode : 4; // Op

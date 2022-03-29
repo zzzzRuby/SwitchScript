@@ -61,7 +61,7 @@ private:
         else return error("invalid stopTime");
 
         uint16_t button = 0;
-        std::optional<DPadValue> dpad;
+        std::optional<DPadValue> dpad = std::nullopt;
 
         std::string token;
         while (ss >> token)
@@ -96,58 +96,56 @@ private:
                 button |= ButtonValue_Capture;
             else if (token == "right")
             {
-                if (dpad != std::nullopt)
+                if (dpad.has_value())
                     return error("invalid input");
                 dpad = DPadValue_Right;
             }
             else if (token == "rightUp")
             {
-                if (dpad != std::nullopt)
+                if (dpad.has_value())
                     return error("invalid input");
                 dpad = DPadValue_TopRight;
             }
             else if (token == "rightDown")
             {
-                if (dpad != std::nullopt)
+                if (dpad.has_value())
                     return error("invalid input");
                 dpad = DPadValue_BottomRight;
             }
             else if (token == "left")
             {
-                if (dpad != std::nullopt)
+                if (dpad.has_value())
                     return error("invalid input");
                 dpad = DPadValue_Left;
             }
             else if (token == "leftUp")
             {
-                if (dpad != std::nullopt)
+                if (dpad.has_value())
                     return error("invalid input");
                 dpad = DPadValue_TopLeft;
             }
             else if (token == "leftDown")
             {
-                if (dpad != std::nullopt)
+                if (dpad.has_value())
                     return error("invalid input");
                 dpad = DPadValue_BottomLeft;
             }
             else if (token == "up")
             {
-                if (dpad != std::nullopt)
+                if (dpad.has_value())
                     return error("invalid input");
                 dpad = DPadValue_Top;
             }
             else if (token == "down")
             {
-                if (dpad != std::nullopt)
+                if (dpad.has_value())
                     return error("invalid input");
                 dpad = DPadValue_Bottom;
             }
             else return error("invalid input");
         }
 
-        builder.NewSetButton((ButtonValue)button, dpad);
-        builder.NewHalt(length);
-        builder.NewUnsetButton((ButtonValue)button, dpad != std::nullopt);
+        builder.NewPress((ButtonValue)button, length, dpad);
         builder.NewHalt(stopTime);
     }
 

@@ -42,6 +42,8 @@ int main(int argc, char** argv) {
 	JoystickState lastState;
 	VM_State_Init(&lastState);
 
+	uint32_t lastTime = 0;
+
 	VM_Start();
 
 	signal(SIGINT, signalHandler);
@@ -117,7 +119,9 @@ int main(int argc, char** argv) {
 				break;
 			}
 
-			std::cout << "State changed at time " << VM_MilliSeconds() << ": ";
+			uint32_t currentTime = VM_MilliSeconds();
+			std::cout << "State changed after " << currentTime - lastTime << "ms at time " << currentTime << "ms: ";
+			lastTime = currentTime;
 
 			for (const char* s : pressedButtons)
 				std::cout << s << " ";

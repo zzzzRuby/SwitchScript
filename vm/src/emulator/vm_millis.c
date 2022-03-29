@@ -15,3 +15,7 @@ uint32_t VM_MilliSeconds(void) {
 
 	return (uint32_t)delta_ms;
 }
+
+void VM_MilliSeconds_Reset(void) {
+	(void)timespec_get(&g_VMStartTime, TIME_UTC);
+}

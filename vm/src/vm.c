@@ -8,6 +8,7 @@
 
 uint32_t VM_MilliSeconds(void);
 void VM_MilliSeconds_Init(void);
+void VM_MilliSeconds_Reset(void);
 
 typedef enum {
 	Halt_None = 0,
@@ -18,7 +19,8 @@ typedef enum {
 
 typedef struct {
 	int16_t PC;
-	int8_t Reserved : 5;
+	int8_t Reserved : 4;
+    int8_t HaltResetButtons : 1;
     int8_t Signal : 1;
 	int8_t CompareResult : 2;
 	Halt HaltType : 8;
@@ -39,6 +41,7 @@ static void VM_Init_Internal(void) {
 	g_VM.HaltType = Halt_Stop;
     g_VM.Signal = 0;
     g_VM.CompareResult = 0;
+    g_VM.HaltResetButtons = 0;
     g_VM.HaltEndTime = 0;
     
     VM_State_Init(&g_VM.State);
@@ -99,9 +102,26 @@ static int8_t VM_ShouldJump(JumpMode mode, int8_t compareResult) {
     }
 }
 
+static uint8_t VM_ReadProgram_Byte(void) {
+    uint8_t result = g_VM.Script[g_VM.PC];
+    g_VM.PC += 1;
+    return result;
+}
+
+static int16_t VM_ReadProgram_Int16(void) {
+    int16_t result = *((int16_t*)&g_VM.Script[g_VM.PC]);
+    g_VM.PC += 2;
+    return result;
+}
+
+static uint16_t VM_ReadProgram_UInt16(void) {
+    uint16_t result = *((uint16_t*)&g_VM.Script[g_VM.PC]);
+    g_VM.PC += 2;
+    return result;
+}
+
 void VM_Update(void) {
     VMCommand command = { 0 };
-	int16_t currentPtr;
 
 	switch(g_VM.HaltType)
 	{
@@ -112,97 +132,125 @@ void VM_Update(void) {
         case Halt_Sleep:
             if (g_VM.HaltEndTime >= VM_MilliSeconds())
                 return;
+            if (g_VM.HaltResetButtons) {
+                g_VM.State.Button = 0;
+                g_VM.State.DPad = DPadValue_None;
+            }
             g_VM.HaltType = Halt_None;
+            g_VM.HaltResetButtons = 0;
             break;
 		case Halt_Signal:
             if (g_VM.Signal == 0)
                 return;
+            if (g_VM.HaltResetButtons) {
+                g_VM.State.Button = 0;
+                g_VM.State.DPad = DPadValue_None;
+            }
             g_VM.HaltType = Halt_None;
+            g_VM.HaltResetButtons = 0;
             break;
 		default:
 			break;
 	}
 	
-	currentPtr = g_VM.PC;
-	command.raw = g_VM.Script[currentPtr];
+	command.raw = VM_ReadProgram_Byte();
 
 	switch(command.opCode) {
-        case Op_Terminate:
-            g_VM.HaltType = Halt_Stop;
-            currentPtr += 1;
+        case Op_Extern:
+            switch(command.desc.externOp.externCode)
+            {
+                case ExternOp_Terminate:
+                    g_VM.HaltType = Halt_Stop;
+                    break;
+                case ExternOp_Nop:
+                    break;
+                case ExternOp_SetStick:
+                    g_VM.State.LX = VM_ReadProgram_Byte();
+                    g_VM.State.LY = VM_ReadProgram_Byte();
+                    g_VM.State.RX = VM_ReadProgram_Byte();
+                    g_VM.State.RY = VM_ReadProgram_Byte();
+                    break;
+                case ExternOp_HaltUntilSignal:
+                    g_VM.HaltType = Halt_Signal;
+                    g_VM.Signal = 0;
+                    break;
+                case ExternOp_Halt:
+                    g_VM.HaltType = Halt_Sleep;
+                    g_VM.HaltEndTime = VM_MilliSeconds() + VM_ReadProgram_UInt16();
+                    break;
+                case ExternOp_Set: {
+                    int16_t val = VM_ReadProgram_Int16();
+                    uint8_t resultAddress = VM_ReadProgram_Byte();
+                    *((int16_t*)(&g_VM.Heap[resultAddress])) = val;
+                    break;
+                }
+                case ExternOp_ResetTimer: 
+                    VM_MilliSeconds_Reset();
+                    break;
+                default:
+                    break;
+            }
             break;
         case Op_SetButton:
             if (command.desc.setButtonOp.setDPad) {
                 g_VM.State.DPad = command.desc.setButtonOp.dpad;
             }
-            g_VM.State.Button |= *((uint16_t*)&g_VM.Script[currentPtr + 1]);
-            currentPtr += 3;
+            g_VM.State.Button |= VM_ReadProgram_UInt16();
             break;
         case Op_UnsetButton:
             if (command.desc.unsetButtonOp.unsetDPad) {
                 g_VM.State.DPad = DPadValue_None;
             }
-            g_VM.State.Button &= ~*((uint16_t*)&g_VM.Script[currentPtr + 1]);
-            currentPtr += 3;
+            g_VM.State.Button &= ~VM_ReadProgram_UInt16();
             break;
         case Op_JumpIf:
             if (VM_ShouldJump(command.desc.jumpIfOp.mode, g_VM.CompareResult))
-                currentPtr = *((int16_t*)&g_VM.Script[currentPtr + 1]);
+                g_VM.PC = VM_ReadProgram_Int16();
             else
-                currentPtr += 3;
+                g_VM.PC += 2;
             break;
-
 #define VM_LoadAluOperator() \
             int16_t aluOpA, aluOpB; \
             if (command.desc.aluOp.isLeftConst) { \
-                aluOpA = *((int16_t*)&g_VM.Script[currentPtr + 1]); \
-                currentPtr += 2; \
+                aluOpA = VM_ReadProgram_Int16(); \
             } else { \
-                uint8_t address = g_VM.Script[currentPtr + 1]; \
+                uint8_t address = VM_ReadProgram_Byte(); \
                 aluOpA = *((int16_t*)(&g_VM.Heap[address])); \
-                currentPtr += 1; \
             } \
             if (command.desc.aluOp.isRightConst) { \
-                aluOpB = *((int16_t*)&g_VM.Script[currentPtr + 1]); \
-                currentPtr += 2; \
+                aluOpB = VM_ReadProgram_Int16(); \
             } else { \
-                uint8_t address = g_VM.Script[currentPtr + 1]; \
+                uint8_t address = VM_ReadProgram_Byte(); \
                 aluOpB = *((int16_t*)(&g_VM.Heap[address])); \
-                currentPtr += 1; \
             }
         case Op_Add: {
             VM_LoadAluOperator();
-            uint8_t resultAddress = g_VM.Script[currentPtr + 1];
+            uint8_t resultAddress = VM_ReadProgram_Byte();
             *((int16_t*)(&g_VM.Heap[resultAddress])) = aluOpA + aluOpB;
-            currentPtr += 2;
             break;
         }
         case Op_Sub:{
             VM_LoadAluOperator();
-            uint8_t resultAddress = g_VM.Script[currentPtr + 1];
+            uint8_t resultAddress = VM_ReadProgram_Byte();
             *((int16_t*)(&g_VM.Heap[resultAddress])) = aluOpA - aluOpB;
-            currentPtr += 2;
             break;
         }
         case Op_Mul:{
             VM_LoadAluOperator();
-            uint8_t resultAddress = g_VM.Script[currentPtr + 1];
+            uint8_t resultAddress = VM_ReadProgram_Byte();
             *((int16_t*)(&g_VM.Heap[resultAddress])) = aluOpA * aluOpB;
-            currentPtr += 2;
             break;
         }
         case Op_Div:{
             VM_LoadAluOperator();
-            uint8_t resultAddress = g_VM.Script[currentPtr + 1];
+            uint8_t resultAddress = VM_ReadProgram_Byte();
             *((int16_t*)(&g_VM.Heap[resultAddress])) = aluOpA / aluOpB;
-            currentPtr += 2;
             break;
         }
         case Op_Mod:{
             VM_LoadAluOperator();
-            uint8_t resultAddress = g_VM.Script[currentPtr + 1];
+            uint8_t resultAddress = VM_ReadProgram_Byte();
             *((int16_t*)(&g_VM.Heap[resultAddress])) = aluOpA % aluOpB;
-            currentPtr += 2;
             break;
         }
         case Op_Compare: {
@@ -213,45 +261,18 @@ void VM_Update(void) {
                 g_VM.CompareResult = 0;
             else if (aluOpA < aluOpB)
                 g_VM.CompareResult = -1;
-            currentPtr += 1;
             break;
         }
 #undef VM_LoadAluOperator
-
-        case Op_SetStick:
-            g_VM.State.LX = g_VM.Script[currentPtr + 1];
-            g_VM.State.LY = g_VM.Script[currentPtr + 2];
-            g_VM.State.RX = g_VM.Script[currentPtr + 3];
-            g_VM.State.RY = g_VM.Script[currentPtr + 4];
-            currentPtr += 5;
-            break;
-        case Op_HaltUntilSignal:
-            g_VM.HaltType = Halt_Signal;
-            g_VM.Signal = 0;
-            currentPtr += 1;
-            break;
-        case Op_Halt:
+        case Op_Press:
+            g_VM.State.DPad = command.desc.pressOp.dpad;
+            g_VM.State.Button = VM_ReadProgram_UInt16();
             g_VM.HaltType = Halt_Sleep;
-            g_VM.HaltEndTime = VM_MilliSeconds() + *((uint16_t*)&g_VM.Script[currentPtr + 1]);
-            currentPtr += 3;
-            break;
-        case Op_Nop:
-            currentPtr += 1;
-            break;
-        case Op_Set: {
-            uint16_t val = *((int16_t*)&g_VM.Script[currentPtr + 2]);
-            uint8_t resultAddress = g_VM.Script[currentPtr + 1];
-            *((int16_t*)(&g_VM.Heap[resultAddress])) = val;
-            currentPtr += 4;
-            break;
-        }
-        case Op_Extern:
-            currentPtr += 1;
+            g_VM.HaltResetButtons = 1;
+            g_VM.HaltEndTime = VM_MilliSeconds() + VM_ReadProgram_UInt16();
             break;
         default:
-            currentPtr += 1;
+            g_VM.PC += 1;
             break;
 	}
-
-	g_VM.PC = currentPtr;
 }

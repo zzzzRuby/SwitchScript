@@ -10,8 +10,8 @@
 
 #define sbi(sfr, bit) (_SFR_BYTE(sfr) |= _BV(bit))
 
-static volatile uint32_t timer0_millis;
-static volatile uint8_t timer0_fract;
+static volatile uint32_t timer0_millis = 0;
+static volatile uint8_t timer0_fract = 0;
 
 #if defined(TIM0_OVF_vect)
 ISR(TIM0_OVF_vect)
@@ -72,4 +72,13 @@ void VM_MilliSeconds_Init(void) {
 #else
 	#error Timer 0 overflow interrupt not set correctly
 #endif
+}
+
+void VM_MilliSeconds_Reset(void) {
+	uint8_t oldSREG = SREG;
+
+	cli();
+	timer0_fract = 0;
+	timer0_millis = 0;
+	SREG = oldSREG;
 }

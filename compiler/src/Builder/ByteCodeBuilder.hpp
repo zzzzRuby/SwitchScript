@@ -23,7 +23,6 @@ public:
 
 	uint16_t PC();
 
-	void NewTerminate();
 	void NewSetButton(ButtonValue flags, std::optional<DPadValue> dpad = std::nullopt);
 	void NewUnsetButton(ButtonValue flags, bool unsetDpad = false);
 	void NewJumpIf(JumpMode mode, uint16_t target);
@@ -33,9 +32,13 @@ public:
 	void NewDiv(std::variant<uint8_t, int16_t> a, std::variant<uint8_t, int16_t> b, uint8_t resultAddress);
 	void NewMod(std::variant<uint8_t, int16_t> a, std::variant<uint8_t, int16_t> b, uint8_t resultAddress);
 	void NewCompare(std::variant<uint8_t, int16_t> a, std::variant<uint8_t, int16_t> b);
+	void NewPress(ButtonValue flags, uint16_t length, std::optional<DPadValue> dpad = std::nullopt);
+
+	void NewTerminate();
+	void NewNop();
 	void NewSetStick(uint8_t lx, uint8_t ly, uint8_t rx, uint8_t ry);
 	void NewHaltUntilSignal();
 	void NewHalt(uint16_t sleepTime);
-	void NewNop();
 	void NewSet(int16_t value, uint8_t address);
+	void NewResetTimer();
 };

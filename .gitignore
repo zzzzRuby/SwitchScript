@@ -1,9 +1,1 @@
-/server/build/*
-/server/*.bin
-/server/*.eep
-/server/*.elf
-/server/*.hex
-/server/*.lss
-/server/*.map
-/server/*.sym
 /build/*

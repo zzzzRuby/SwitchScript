@@ -137,7 +137,9 @@ void VM_State_Init(JoystickState* state);
 
 void VM_Init(void);
 
-uint8_t* VM_PrepareForLoad(void);
+void VM_LoadProgram(const uint8_t* buffer, uint16_t size, uint16_t offset);
+
+void VM_PrepareForLoad(void);
 
 void VM_Start(void);
 

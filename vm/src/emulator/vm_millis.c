@@ -1,13 +1,13 @@
-#include <vm.h>
+#include "../vm_internal.h"
 #include <time.h>
 
 static struct timespec g_VMStartTime;
 
-void VM_MilliSeconds_Init(void) {
+void _VM_MilliSeconds_Init(void) {
 	(void)timespec_get(&g_VMStartTime, TIME_UTC);
 }
 
-uint32_t VM_MilliSeconds(void) {
+uint32_t _VM_MilliSeconds(void) {
 	struct timespec now;
 	(void)timespec_get(&now, TIME_UTC);
 
@@ -16,6 +16,6 @@ uint32_t VM_MilliSeconds(void) {
 	return (uint32_t)delta_ms;
 }
 
-void VM_MilliSeconds_Reset(void) {
+void _VM_MilliSeconds_Reset(void) {
 	(void)timespec_get(&g_VMStartTime, TIME_UTC);
 }

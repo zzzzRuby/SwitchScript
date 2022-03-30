@@ -13,4 +13,6 @@ if (SWITCH_SCRIPT_BUILD_HOST)
 	add_executable(SwitchScriptCompiler src/CompilerMain.cpp)
 	set_target_properties(SwitchScriptCompiler PROPERTIES CXX_STANDARD 17)
 	target_link_libraries(SwitchScriptCompiler PRIVATE SwitchScriptCompilerLib)
+
+	install(TARGETS SwitchScriptCompiler)
 endif()

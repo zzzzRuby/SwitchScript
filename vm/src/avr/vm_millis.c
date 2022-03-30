@@ -1,4 +1,4 @@
-#include <vm.h>
+#include "../vm_internal.h"
 #include <avr/interrupt.h>
 
 #define clockCyclesPerMicrosecond() ( F_CPU / 1000000L )
@@ -33,7 +33,7 @@ ISR(TIMER0_OVF_vect)
 	timer0_millis = millis;
 }
 
-uint32_t VM_MilliSeconds(void) {
+uint32_t _VM_MilliSeconds(void) {
 	uint32_t result;
 	uint8_t oldSREG = SREG;
 
@@ -44,7 +44,7 @@ uint32_t VM_MilliSeconds(void) {
     return result;
 }
 
-void VM_MilliSeconds_Init(void) {
+void _VM_MilliSeconds_Init(void) {
 #if defined(TCCR0A) && defined(WGM01)
 	sbi(TCCR0A, WGM01);
 	sbi(TCCR0A, WGM00);
@@ -74,7 +74,7 @@ void VM_MilliSeconds_Init(void) {
 #endif
 }
 
-void VM_MilliSeconds_Reset(void) {
+void _VM_MilliSeconds_Reset(void) {
 	uint8_t oldSREG = SREG;
 
 	cli();

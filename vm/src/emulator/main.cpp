@@ -3,13 +3,7 @@
 #include <iostream>
 #include <signal.h>
 
-#include <vm.h>
-#include <vm_limits.h>
-
-extern "C"
-{
-	uint32_t VM_MilliSeconds(void);
-}
+#include "../vm_internal.h"
 
 static volatile bool g_Stop = false;
 
@@ -36,8 +30,11 @@ int main(int argc, char** argv) {
 
 	VM_Init();
 
-	uint8_t* code = VM_PrepareForLoad();
-	fin.read((char*)code, scriptSize);
+	VM_PrepareForLoad();
+	
+	std::vector<uint8_t> code(scriptSize);
+	fin.read((char*)code.data(), scriptSize);
+	VM_LoadProgram(code.data(), (uint16_t)scriptSize, 0);
 
 	JoystickState lastState;
 	VM_State_Init(&lastState);
@@ -119,7 +116,7 @@ int main(int argc, char** argv) {
 				break;
 			}
 
-			uint32_t currentTime = VM_MilliSeconds();
+			uint32_t currentTime = _VM_MilliSeconds();
 			std::cout << "State changed after " << currentTime - lastTime << "ms at time " << currentTime << "ms: ";
 			lastTime = currentTime;
 

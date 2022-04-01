@@ -8,7 +8,7 @@ set(SWITCH_SCRIPT_THIRD_PARTY_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/third_party
 set(SWITCH_SCRIPT_THIRD_PARTY_BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR}/third_party)
 
 function(switch_script_require_package package_name)
-    add_subdirectory(${SWITCH_SCRIPT_THIRD_PARTY_SOURCE_DIR}/${package_name} ${SWITCH_SCRIPT_THIRD_PARTY_BINARY_DIR}/${package_name})
+    add_subdirectory(${SWITCH_SCRIPT_THIRD_PARTY_SOURCE_DIR}/${package_name} ${SWITCH_SCRIPT_THIRD_PARTY_BINARY_DIR}/${package_name} EXCLUDE_FROM_ALL)
 endfunction()
 
 if ("${CMAKE_SYSTEM_NAME}" STREQUAL "AVR")
@@ -21,3 +21,4 @@ add_subdirectory(vm)
 add_subdirectory(client)
 add_subdirectory(compiler)
 add_subdirectory(server)
+add_subdirectory(uploader)

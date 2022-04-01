@@ -248,12 +248,3 @@ void ByteCodeBuilder::NewSet(int16_t value, uint8_t address)
 	streamWrite(m_Code, address);
 	streamWrite(m_Code, value);
 }
-
-void ByteCodeBuilder::NewResetTimer()
-{
-	VMCommand command = { 0 };
-	command.opCode = Op_Extern;
-	command.desc.externOp.externCode = ExternOp_ResetTimer;
-
-	streamWrite(m_Code, command);
-}

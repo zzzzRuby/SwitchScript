@@ -17,6 +17,7 @@ find_program(CMAKE_AVR_RANLIB avr-ranlib REQUIRED)
 find_program(CMAKE_AVR_NM avr-nm REQUIRED)
 find_program(CMAKE_AVR_AR avr-ar REQUIRED)
 find_program(CMAKE_AVR_STRIP avr-strip)
+find_program(CMAKE_AVR_PERL perl)
 
 if (NOT DEFINED CMAKE_AVR_MCU)
     message(FATAL_ERROR "must define CMAKE_AVR_MCU")
@@ -40,7 +41,7 @@ set(CMAKE_C_FLAGS_INIT "-mmcu=${CMAKE_AVR_MCU}")
 set(CMAKE_CXX_FLAGS_INIT "${CMAKE_C_FLAGS_INIT}")
 set(CMAKE_ASM_FLAGS_INIT "${CMAKE_C_FLAGS_INIT}")
 
-set(CMAKE_COMPILE_OBJECT_PARAMETERS "-c -pipe -gdwarf-2 -g2 -fshort-enums -fno-inline-small-functions -fpack-struct -Wall -fno-strict-aliasing -funsigned-char -funsigned-bitfields -ffunction-sections -mrelax -fno-jump-tables -Wstrict-prototypes -DF_CPU=${CMAKE_AVR_F_CPU}UL <DEFINES> <INCLUDES> <FLAGS> -o <OBJECT> <SOURCE>")
+set(CMAKE_COMPILE_OBJECT_PARAMETERS "-c -pipe -gdwarf-2 -g2 -fshort-enums -fno-inline-small-functions -fpack-struct -Wall -fno-strict-aliasing -funsigned-char -funsigned-bitfields -ffunction-sections -mrelax -fstack-usage -fno-jump-tables -Wstrict-prototypes -DF_CPU=${CMAKE_AVR_F_CPU}UL <DEFINES> <INCLUDES> <FLAGS> -o <OBJECT> <SOURCE>")
 set(CMAKE_C_COMPILE_OBJECT "<CMAKE_C_COMPILER> ${CMAKE_COMPILE_OBJECT_PARAMETERS}")
 set(CMAKE_CXX_COMPILE_OBJECT "<CMAKE_CXX_COMPILER> ${CMAKE_COMPILE_OBJECT_PARAMETERS}")
 set(CMAKE_ASM_COMPILE_OBJECT "<CMAKE_ASM_COMPILER> ${CMAKE_COMPILE_OBJECT_PARAMETERS}")
@@ -55,6 +56,9 @@ set(CMAKE_LINK_EXECUTABLE_AFTER
     "\"${CMAKE_AVR_OBJCOPY}\" -h -d -S -z <TARGET_BASE>${CMAKE_EXECUTABLE_SUFFIX} > <TARGET_BASE>.lss"
     "\"${CMAKE_AVR_NM}\" -n <TARGET_BASE>${CMAKE_EXECUTABLE_SUFFIX} > <TARGET_BASE>.sym"
     "\"${CMAKE_AVR_SIZE}\" --mcu=${CMAKE_AVR_MCU} --format=avr <TARGET_BASE>${CMAKE_EXECUTABLE_SUFFIX} > <TARGET_BASE>.size")
+if (CMAKE_AVR_PERL)
+    list(APPEND CMAKE_LINK_EXECUTABLE_AFTER "\"${CMAKE_AVR_PERL}\" \"${CMAKE_CURRENT_LIST_DIR}\"/avstack.pl <OBJECTS> > <TARGET_BASE>.stack")
+endif()
 set(CMAKE_C_LINK_EXECUTABLE 
     "<CMAKE_C_COMPILER> ${CMAKE_LINK_EXECUTABLE_PARAMETERS}"
     ${CMAKE_LINK_EXECUTABLE_AFTER})

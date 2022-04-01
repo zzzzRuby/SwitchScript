@@ -11,7 +11,7 @@ static void VM_Init_Internal(void) {
     g_VM.HaltResetButtons = 0;
     g_VM.HaltEndTime = 0;
     
-    VM_State_Init(&g_VM.State);
+    _VM_State_Init(&g_VM.State);
 
     memset(g_VM.Heap, 0, HeapSize);
 }
@@ -20,7 +20,7 @@ JoystickState* VM_State(void) {
     return &g_VM.State;
 }
 
-void VM_State_Init(JoystickState* state) {
+void _VM_State_Init(JoystickState* state) {
     state->Button = 0;
     state->DPad = DPadValue_None;
     state->LX = state->LY = state->RX = state->RY = 0x80;
@@ -37,19 +37,19 @@ void VM_Start(void) {
 }
 
 void VM_Stop(void) {
-	g_VM.HaltType = Halt_Stop;
+    VM_Init_Internal();
 }
 
 void VM_Signal(void) {
     g_VM.Signal = 1;
 }
 
-int8_t VM_IsTerminated(void) {
+bool VM_IsTerminated(void) {
     return g_VM.HaltType == Halt_Stop;
 }
 
-void VM_PrepareForLoad(void) {
-    VM_Init_Internal();
+uint8_t* VM_Heap(void) {
+    return g_VM.Heap;
 }
 
 static int8_t VM_ShouldJump(JumpMode mode, int8_t compareResult) {
@@ -111,7 +111,7 @@ void VM_Update(void) {
             switch(command.desc.externOp.externCode)
             {
                 case ExternOp_Terminate:
-                    g_VM.HaltType = Halt_Stop;
+                    VM_Stop();
                     break;
                 case ExternOp_Nop:
                     break;
@@ -135,9 +135,6 @@ void VM_Update(void) {
                     *((int16_t*)(&g_VM.Heap[resultAddress])) = val;
                     break;
                 }
-                case ExternOp_ResetTimer: 
-                    _VM_MilliSeconds_Reset();
-                    break;
                 default:
                     break;
             }

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stdint.h>
+#include <stdbool.h>
 
 #if defined(__cplusplus)
 extern "C" {
@@ -76,7 +77,6 @@ typedef enum {
 	ExternOp_HaltUntilSignal = 3,
 	ExternOp_Halt = 4,
 	ExternOp_Set = 5,
-	ExternOp_ResetTimer = 6,
 } ExternOp;
 
 typedef union {
@@ -133,13 +133,7 @@ _Static_assert
 
 JoystickState* VM_State(void);
 
-void VM_State_Init(JoystickState* state);
-
 void VM_Init(void);
-
-void VM_LoadProgram(const uint8_t* buffer, uint16_t size, uint16_t offset);
-
-void VM_PrepareForLoad(void);
 
 void VM_Start(void);
 
@@ -149,7 +143,17 @@ void VM_Update(void);
 
 void VM_Signal(void);
 
-int8_t VM_IsTerminated(void);
+bool VM_IsTerminated(void);
+
+uint8_t* VM_Heap(void);
+
+void VM_StartLoadProgram(void);
+
+void VM_LoadProgram(const uint8_t* buffer, uint16_t size, uint16_t offset);
+
+void VM_EndLoadProgram(void);
+
+bool VM_IsProgramLoad(void);
 
 #if defined(__cplusplus)
 }

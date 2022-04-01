@@ -25,3 +25,11 @@ uint16_t _VM_ReadProgram_UInt16(void) {
 void VM_LoadProgram(const uint8_t* buffer, uint16_t size, uint16_t offset) {
     memcpy(&g_Exe[offset], buffer, size);
 }
+
+static bool g_ProgramLoad = false;
+
+void VM_StartLoadProgram(void) { g_ProgramLoad = false; }
+
+void VM_EndLoadProgram(void) { g_ProgramLoad = true; }
+
+bool VM_IsProgramLoad(void) { return g_ProgramLoad; }

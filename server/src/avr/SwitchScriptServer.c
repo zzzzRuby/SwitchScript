@@ -21,19 +21,14 @@ these buttons for our use.
 #include <string.h>
 
 #include <LUFA/Drivers/USB/USB.h>
-#include <LUFA/Drivers/Board/Joystick.h>
-#include <LUFA/Drivers/Board/LEDs.h>
-#include <LUFA/Drivers/Board/Buttons.h>
-#include <LUFA/Platform/Platform.h>
 
-#include <avr/io.h>
 #include <avr/wdt.h>
 #include <avr/power.h>
-#include <avr/interrupt.h>
 
 #include <vm.h>
 
 #include "Descriptors.h"
+#include "Command.h"
 
 // The output is structured as a mirror of the input.
 // This is based on initial observations of the Pokken Controller.
@@ -45,19 +40,6 @@ typedef struct {
 	uint8_t  RX;     // Right Stick X
 	uint8_t  RY;     // Right Stick Y
 } USB_JoystickReport_Output_t;
-
-// Configures hardware and peripherals, such as the USB peripherals.
-static void SetupHardware(void) {
-	// We need to disable watchdog if enabled by bootloader/fuses.
-	MCUSR &= ~(1 << WDRF);
-	wdt_disable();
-
-	// We need to disable clock division before initializing the USB hardware.
-	clock_prescale_set(clock_div_1);
-
-	// The USB stack should be initialized last.
-	USB_Init();
-}
 
 void EVENT_USB_Device_Reset(void) {}
 
@@ -121,17 +103,32 @@ static void HID_Task(void) {
 
 // Main entry point.
 int main(void) {
-	// We'll start by performing hardware and peripheral setup.
-	SetupHardware();
+	Command_Init();
+
+	// We need to disable watchdog if enabled by bootloader/fuses.
+	MCUSR &= ~(1 << WDRF);
+	wdt_disable();
+
+	// We need to disable clock division before initializing the USB hardware.
+	clock_prescale_set(clock_div_1);
+
+	// The USB stack should be initialized last.
+	USB_Init();
+
+	VM_Init();
+
 	// We'll then enable global interrupts for our use.
 	GlobalInterruptEnable();
+
 	// Once that's done, we'll enter an infinite loop.
-	VM_Init();
 
 	VM_Start();
 	for (;;)
 	{
+		Command_Update();
+		
 		VM_Update();
+
 		// We need to run our task to process and deliver data for our IN and OUT endpoints.
 		HID_Task();
 		// We also need to run the main USB management task.

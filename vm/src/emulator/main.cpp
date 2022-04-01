@@ -29,15 +29,15 @@ int main(int argc, char** argv) {
 	std::ifstream fin(scriptPath, std::ios::binary);
 
 	VM_Init();
-
-	VM_PrepareForLoad();
 	
 	std::vector<uint8_t> code(scriptSize);
 	fin.read((char*)code.data(), scriptSize);
+	VM_StartLoadProgram();
 	VM_LoadProgram(code.data(), (uint16_t)scriptSize, 0);
+	VM_EndLoadProgram();
 
 	JoystickState lastState;
-	VM_State_Init(&lastState);
+	_VM_State_Init(&lastState);
 
 	uint32_t lastTime = 0;
 

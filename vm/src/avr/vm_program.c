@@ -33,6 +33,15 @@ void VM_LoadProgram(const uint8_t* buffer, uint16_t size, uint16_t offset) {
     eeprom_busy_wait();
     eeprom_update_block(buffer, &g_Exe[g_VM.PC], size);
 }
+
+static uint16_t g_ProgramLoad EEMEM = 0;
+
+void VM_StartLoadProgram(void) { eeprom_write_word(&g_ProgramLoad, 0); }
+
+void VM_EndLoadProgram(void) { eeprom_write_word(&g_ProgramLoad, 1); }
+
+bool VM_IsProgramLoad(void) { return eeprom_read_word(&g_ProgramLoad) != 0; }
+
 #else
 
 #include <string.h>
@@ -60,5 +69,13 @@ uint16_t _VM_ReadProgram_UInt16(void) {
 void VM_LoadProgram(const uint8_t* buffer, uint16_t size, uint16_t offset) {
     memcpy(&g_Exe[offset], buffer, size);
 }
+
+static bool g_ProgramLoad = false;
+
+void VM_StartLoadProgram(void) { g_ProgramLoad = false; }
+
+void VM_EndLoadProgram(void) { g_ProgramLoad = true; }
+
+bool VM_IsProgramLoad(void) { return g_ProgramLoad; }
 
 #endif

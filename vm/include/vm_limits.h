@@ -7,7 +7,7 @@
 #define emulator_has_eeprom 0
 
 #define atmega16u2_heap_size ((size_t)256)
-#define atmega16u2_exe_size ((size_t)512)
+#define atmega16u2_exe_size ((size_t)512 - 2)
 #define atmega16u2_has_eeprom 1
 
 #define atmega32u4_mem_heap_size ((size_t)256)
@@ -15,7 +15,7 @@
 #define atmega32u4_mem_has_eeprom 0
 
 #define atmega32u4_heap_size ((size_t)256)
-#define atmega32u4_exe_size ((size_t)1024)
+#define atmega32u4_exe_size ((size_t)1024 - 2)
 #define atmega32u4_has_eeprom 1
 
 #if defined(SSVM_EMULATOR)

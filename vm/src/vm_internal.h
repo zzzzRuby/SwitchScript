@@ -18,6 +18,8 @@ uint8_t _VM_ReadProgram_Byte(void);
 int16_t _VM_ReadProgram_Int16(void);
 uint16_t _VM_ReadProgram_UInt16(void);
 
+void _VM_State_Init(JoystickState* state);
+
 typedef enum {
 	Halt_None = 0,
 	Halt_Stop = 1,
@@ -27,14 +29,16 @@ typedef enum {
 
 typedef struct {
 	int16_t PC;
-	int8_t Reserved : 4;
+	uint8_t Heap[HeapSize];
+	JoystickState State;
+
+    uint32_t HaltEndTime;
+
+	int8_t Reserved : 2;
+	uint8_t HaltType: 2; // HaltType
     int8_t HaltResetButtons : 1;
     int8_t Signal : 1;
 	int8_t CompareResult : 2;
-	Halt HaltType : 8;
-    uint32_t HaltEndTime;
-	JoystickState State;
-	uint8_t Heap[HeapSize];
 } VM;
 
 #if defined(__cplusplus)

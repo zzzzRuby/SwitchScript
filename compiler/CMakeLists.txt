@@ -9,8 +9,9 @@ if (SWITCH_SCRIPT_BUILD_HOST)
 		src/CompilerOld.cpp)
 	target_link_libraries(SwitchScriptCompilerLib PRIVATE SwitchScriptVM)
 	set_target_properties(SwitchScriptCompilerLib PROPERTIES CXX_STANDARD 17)
+	target_include_directories(SwitchScriptCompilerLib PUBLIC include)
 
-	add_executable(SwitchScriptCompiler src/CompilerMain.cpp)
+	add_executable(SwitchScriptCompiler src/Main.cpp)
 	set_target_properties(SwitchScriptCompiler PROPERTIES CXX_STANDARD 17)
 	target_link_libraries(SwitchScriptCompiler PRIVATE SwitchScriptCompilerLib)
 

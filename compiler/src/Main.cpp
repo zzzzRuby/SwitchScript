@@ -2,10 +2,8 @@
 #include <fstream>
 #include <sstream>
 #include <vector>
-#include <string>
 #include <filesystem>
-
-bool CompileOld(std::ostream& log, const std::string& script, std::ostream& code);
+#include <compile.hpp>
 
 int main(int argc, char** argv)
 {

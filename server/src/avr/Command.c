@@ -7,22 +7,15 @@ enum SerialCommand
 {
     SerialCommand_Signal = 1,
     SerialCommand_Upload = 2,
-    SerialCommand_HeartBeat = 3
+    SerialCommand_UploadEnd = 3,
+    SerialCommand_HeartBeat = 4
 };
 
-typedef union
+enum SerialResult
 {
-    struct {
-        uint8_t command : 4;
-        union {
-            struct {
-                uint8_t lastPart : 1;
-                uint8_t reserved : 3;
-            } upload;
-        } desc;
-    };
-    uint8_t raw;
-} SerialCommandData;
+    SerialResult_UploadResult = 1,
+    SerialResult_HeartBeat = 2
+};
 
 static RingBuffer_t g_CommandBuffer;
 static uint8_t g_Buffer[64];
@@ -34,59 +27,70 @@ ISR(USART1_RX_vect)
 }
 
 void Command_Init(void) {
-	Serial_Init(19200, false);
+	Serial_Init(9600, false);
     RingBuffer_InitBuffer(&g_CommandBuffer, g_Buffer, sizeof(g_Buffer));
 }
 
 void Command_Update(void) {
-    if (RingBuffer_IsEmpty(&g_CommandBuffer))
-        return;
+    while(true) {
+        if (RingBuffer_IsEmpty(&g_CommandBuffer))
+            return;
 
-    SerialCommandData commandData;
-    commandData.raw = RingBuffer_Peek(&g_CommandBuffer);
+        uint8_t command = RingBuffer_Peek(&g_CommandBuffer);
 
-    switch(commandData.command) {
-        case SerialCommand_Signal:
-            RingBuffer_Remove(&g_CommandBuffer);
-            VM_Signal();
-            break;
-        case SerialCommand_Upload: {
-            if (RingBuffer_GetCount(&g_CommandBuffer) < 24)
-                return;
-            RingBuffer_Remove(&g_CommandBuffer);
+        switch(command) {
+            case SerialCommand_Signal: {
+                if (RingBuffer_GetCount(&g_CommandBuffer) < 3)
+                    return;
+                RingBuffer_Remove(&g_CommandBuffer);
+                uint8_t low = RingBuffer_Remove(&g_CommandBuffer);
+                uint8_t high = RingBuffer_Remove(&g_CommandBuffer);
 
-            uint8_t blockSize = RingBuffer_Remove(&g_CommandBuffer);
+                int16_t value = high << 8 | low;
 
-            uint8_t low = RingBuffer_Remove(&g_CommandBuffer);
-            uint8_t high = RingBuffer_Remove(&g_CommandBuffer);
-
-            uint16_t offset = ((uint16_t)high) * 0x100 + low;
-            
-            if (!g_Downloading) {
-                VM_Stop();
-                g_Downloading = true;
+                VM_Signal(value);
+                break;
             }
+            case SerialCommand_Upload: {
+                if (RingBuffer_GetCount(&g_CommandBuffer) < 24)
+                    return;
+                RingBuffer_Remove(&g_CommandBuffer);
 
-            uint8_t* buffer = VM_Heap();
+                uint8_t blockSize = RingBuffer_Remove(&g_CommandBuffer);
 
-            for(uint8_t i = 0;i < blockSize;i++) {
-                buffer[i] = RingBuffer_Remove(&g_CommandBuffer);
+                uint8_t low = RingBuffer_Remove(&g_CommandBuffer);
+                uint8_t high = RingBuffer_Remove(&g_CommandBuffer);
+
+                uint16_t offset = high << 8 | low;
+                
+                if (!g_Downloading) {
+                    if (!VM_IsTerminated())
+                        VM_Stop();
+                    g_Downloading = true;
+                    VM_StartLoadProgram();
+                }
+
+                uint8_t* buffer = VM_Heap();
+
+                for(uint8_t i = 0;i < 20;i++) {
+                    buffer[i] = RingBuffer_Remove(&g_CommandBuffer);
+                }
+
+                VM_LoadProgram(buffer, blockSize, offset);
+
+                break;
             }
-
-            VM_LoadProgram(buffer, blockSize, offset);
-
-            if (commandData.desc.upload.lastPart) {
+            case SerialCommand_UploadEnd:
+                RingBuffer_Remove(&g_CommandBuffer);
+                VM_EndLoadProgram();
                 g_Downloading = false;
-            }
-            
-            break;
+            case SerialCommand_HeartBeat:
+                RingBuffer_Remove(&g_CommandBuffer);
+                break;
+            default:
+                RingBuffer_Remove(&g_CommandBuffer);
+                break;
         }
-        case SerialCommand_HeartBeat:
-            RingBuffer_Remove(&g_CommandBuffer);
-            break;
-        default:
-            RingBuffer_Remove(&g_CommandBuffer);
-            break;
     }
 }
 

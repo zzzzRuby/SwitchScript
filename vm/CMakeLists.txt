@@ -14,7 +14,7 @@ if (SWITCH_SCRIPT_BUILD_HOST)
     target_link_libraries(SwitchScriptVMEmulator PRIVATE SwitchScriptVM)
     set_target_properties(SwitchScriptVMEmulator PROPERTIES CXX_STANDARD 17)
 
-	install(TARGETS SwitchScriptVMEmulator)
+	#install(TARGETS SwitchScriptVMEmulator)
 elseif (SWITCH_SCRIPT_BUILD_AVR)
     add_library(SwitchScriptVM OBJECT src/vm.c src/avr/vm_millis.c src/avr/vm_program.c)
     target_include_directories(SwitchScriptVM PUBLIC include)

@@ -10,6 +10,8 @@ static void VM_Init_Internal(void) {
     g_VM.CompareResult = 0;
     g_VM.HaltResetButtons = 0;
     g_VM.HaltEndTime = 0;
+    g_VM.SignalValue = 0;
+    g_VM.SignalAddress = 0;
     
     _VM_State_Init(&g_VM.State);
 
@@ -40,8 +42,9 @@ void VM_Stop(void) {
     VM_Init_Internal();
 }
 
-void VM_Signal(void) {
+void VM_Signal(int16_t value) {
     g_VM.Signal = 1;
+    g_VM.SignalValue = value;
 }
 
 bool VM_IsTerminated(void) {
@@ -50,6 +53,10 @@ bool VM_IsTerminated(void) {
 
 uint8_t* VM_Heap(void) {
     return g_VM.Heap;
+}
+
+bool VM_WaitingForSignal(void) {
+    return g_VM.HaltType == Halt_Signal;
 }
 
 static int8_t VM_ShouldJump(JumpMode mode, int8_t compareResult) {
@@ -93,10 +100,8 @@ void VM_Update(void) {
 		case Halt_Signal:
             if (g_VM.Signal == 0)
                 return;
-            if (g_VM.HaltResetButtons) {
-                g_VM.State.Button = 0;
-                g_VM.State.DPad = DPadValue_None;
-            }
+                
+            *((int16_t*)(&g_VM.Heap[g_VM.SignalAddress])) = g_VM.SignalValue;
             g_VM.HaltType = Halt_None;
             g_VM.HaltResetButtons = 0;
             break;
@@ -124,6 +129,7 @@ void VM_Update(void) {
                 case ExternOp_HaltUntilSignal:
                     g_VM.HaltType = Halt_Signal;
                     g_VM.Signal = 0;
+                    g_VM.SignalAddress = _VM_ReadProgram_Byte();
                     break;
                 case ExternOp_Halt:
                     g_VM.HaltType = Halt_Sleep;

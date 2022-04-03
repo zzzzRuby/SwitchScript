@@ -53,9 +53,22 @@ int main(int argc, char** argv) {
 		if (VM_IsTerminated())
 			break;
 
+		if (VM_WaitingForSignal()) {
+			std::cout << "Input signal (int16_t): ";
+
+			int16_t value;
+			std::cin >> value;
+
+			VM_Signal(value);
+		}
+
 		JoystickState* state = VM_State();
 
 		if (memcmp(state, &lastState, sizeof(JoystickState)) != 0) {
+			uint32_t currentTime = _VM_MilliSeconds();
+			std::cout << "State changed after " << currentTime - lastTime << "ms at time " << currentTime << "ms: ";
+			lastTime = currentTime;
+
 			std::vector<const char*> pressedButtons;
 			if (state->Button & ButtonValue_A)
 				pressedButtons.push_back("A");
@@ -115,10 +128,6 @@ int main(int argc, char** argv) {
 			default:
 				break;
 			}
-
-			uint32_t currentTime = _VM_MilliSeconds();
-			std::cout << "State changed after " << currentTime - lastTime << "ms at time " << currentTime << "ms: ";
-			lastTime = currentTime;
 
 			for (const char* s : pressedButtons)
 				std::cout << s << " ";

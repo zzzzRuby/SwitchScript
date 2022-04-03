@@ -219,13 +219,14 @@ void ByteCodeBuilder::NewSetStick(uint8_t lx, uint8_t ly, uint8_t rx, uint8_t ry
 	streamWrite(m_Code, ry);
 }
 
-void ByteCodeBuilder::NewHaltUntilSignal()
+void ByteCodeBuilder::NewHaltUntilSignal(uint8_t address)
 {
 	VMCommand command = { 0 };
 	command.opCode = Op_Extern;
 	command.desc.externOp.externCode = ExternOp_HaltUntilSignal;
 
 	streamWrite(m_Code, command);
+	streamWrite(m_Code, address);
 }
 
 void ByteCodeBuilder::NewHalt(uint16_t sleepTime)

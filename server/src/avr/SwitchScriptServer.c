@@ -121,8 +121,6 @@ int main(void) {
 	GlobalInterruptEnable();
 
 	// Once that's done, we'll enter an infinite loop.
-
-	VM_Start();
 	for (;;)
 	{
 		Command_Update();

@@ -33,6 +33,8 @@ typedef struct {
 	JoystickState State;
 
     uint32_t HaltEndTime;
+	int16_t SignalValue;
+	uint8_t SignalAddress;
 
 	int8_t Reserved : 2;
 	uint8_t HaltType: 2; // HaltType

@@ -37,8 +37,7 @@ public:
 	void NewTerminate();
 	void NewNop();
 	void NewSetStick(uint8_t lx, uint8_t ly, uint8_t rx, uint8_t ry);
-	void NewHaltUntilSignal();
+	void NewHaltUntilSignal(uint8_t value);
 	void NewHalt(uint16_t sleepTime);
 	void NewSet(int16_t value, uint8_t address);
-	void NewResetTimer();
 };

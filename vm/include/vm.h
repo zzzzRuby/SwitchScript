@@ -141,7 +141,9 @@ void VM_Stop(void);
 
 void VM_Update(void);
 
-void VM_Signal(void);
+void VM_Signal(int16_t value);
+
+bool VM_WaitingForSignal(void);
 
 bool VM_IsTerminated(void);
 

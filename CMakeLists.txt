@@ -18,7 +18,5 @@ else()
 endif()
 
 add_subdirectory(vm)
-add_subdirectory(client)
-add_subdirectory(compiler)
+add_subdirectory(tools)
 add_subdirectory(server)
-add_subdirectory(uploader)

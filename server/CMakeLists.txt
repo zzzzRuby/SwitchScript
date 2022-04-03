@@ -17,7 +17,7 @@ elseif (SWITCH_SCRIPT_BUILD_HOST)
 		set(SWITCH_SCRIPT_AVR_MCU "atmega32u4;atmega16u2" CACHE STRING "AVR MCUs")
 		foreach(mcu ${SWITCH_SCRIPT_AVR_MCU})
 			message(STATUS "Generating ${mcu} project")
-			include(MCU/${mcu})
+			include(AVR-MCU/${mcu})
 			execute_process(
 				COMMAND "${CMAKE_COMMAND}" -E make_directory "${CMAKE_CURRENT_BINARY_DIR}/${mcu}"
 				COMMAND "${CMAKE_COMMAND}" -S "${CMAKE_CURRENT_SOURCE_DIR}/.."
@@ -31,9 +31,9 @@ elseif (SWITCH_SCRIPT_BUILD_HOST)
 
 			add_custom_target(SwitchScriptServer_${mcu} ALL COMMAND "${CMAKE_COMMAND}" --build "${CMAKE_CURRENT_BINARY_DIR}/${mcu}")
 
-			install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${mcu}/server/SwitchScriptServer.hex
-				DESTINATION "bin/server"
-				RENAME ${mcu}.hex)
+			#install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${mcu}/server/SwitchScriptServer.hex
+			#	DESTINATION "bin/server"
+			#	RENAME ${mcu}.hex)
 		endforeach()
 	endif()
 endif()

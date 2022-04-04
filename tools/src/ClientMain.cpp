@@ -1,11 +1,12 @@
-#include <qguiapplication.h>
-#include <opencv2/opencv.hpp>
+#include <qapplication.h>
+#include "Client/MainWindow.hpp"
 
 int main(int argc, char** argv)
 {
-	QGuiApplication app(argc, argv);
+	QApplication app(argc, argv);
 
-
+	MainWindow w;
+	w.show();
 
 	return app.exec();
 }

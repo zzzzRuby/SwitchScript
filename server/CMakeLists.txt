@@ -5,11 +5,15 @@ project(SwitchScriptServer C)
 if (SWITCH_SCRIPT_BUILD_AVR)
 	switch_script_require_package(lufa)
 	
-	add_executable(SwitchScriptServer src/avr/SwitchScriptServer.c src/avr/Descriptors.c src/avr/Command.c)
+	add_executable(SwitchScriptServer src/ServerMain.c
+		src/avr/LUFAConfig.h
+		src/avr/Descriptors.c src/avr/Descriptors.h
+		src/avr/Command.c src/Command.h
+		src/avr/HID.c src/HID.h)
 	target_link_libraries(SwitchScriptServer PRIVATE SwitchScriptVM LUFAUsb LUFASerial)
 	set_target_properties(SwitchScriptServer PROPERTIES C_STANDARD 11)
 	target_compile_definitions(SwitchScriptServer PRIVATE USE_LUFA_CONFIG_HEADER)
-	target_include_directories(SwitchScriptServer PRIVATE include)
+	target_include_directories(SwitchScriptServer PRIVATE src/avr)
 elseif (SWITCH_SCRIPT_BUILD_HOST)
 	set(SWITCH_SCRIPT_ENABLE_ARCH "AVR" CACHE STRING "Architecture to build server")
 

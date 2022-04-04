@@ -3,7 +3,14 @@
 #include <iostream>
 #include <signal.h>
 
-#include "../vm_internal.h"
+#include <vm_limits.h>
+#include <vm.h>
+
+extern "C"
+{
+	uint32_t _VM_MilliSeconds(void);
+	void _VM_State_Init(JoystickState* state);
+}
 
 static volatile bool g_Stop = false;
 

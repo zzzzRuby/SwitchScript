@@ -2,6 +2,7 @@
 #include <LUFA/Drivers/Peripheral/Serial.h>
 #include <LUFA/Drivers/Misc/RingBuffer.h>
 #include <vm.h>
+#include "../Command.h"
 
 enum SerialCommand
 {

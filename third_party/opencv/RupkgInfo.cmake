@@ -1,0 +1,2 @@
+set(RUPKG_EXPORT_TARGETS opencv_core)
+set(RUPKG_REQUIRED_PACKAGES zlib)

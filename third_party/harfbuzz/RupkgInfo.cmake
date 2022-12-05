@@ -1,0 +1,2 @@
+set(RUPKG_EXPORT_TARGETS harfbuzz)
+set(RUPKG_REQUIRED_PACKAGES freetype)

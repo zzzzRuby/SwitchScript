@@ -1,0 +1,30 @@
+for 960
+    press short a
+    press veryShort up
+    press veryShort up
+    press short a
+    press short a
+    press veryLong a
+    press short a
+    press veryShort right
+    press veryShort up
+    press veryShort up
+    press veryShort up
+    press veryShort up
+    press veryLong a
+    press short x
+    press short x
+    press short l
+    press short a
+    press veryShort up
+    press veryShort up
+    press veryShort up
+    press short a
+    press veryLong b
+    press veryShort left
+    press veryShort down
+    press veryShort down
+    press veryShort down
+    press veryShort down
+end
+keepLive

@@ -3,7 +3,6 @@ set(CMAKE_SYSTEM_PROCESSOR avr)
 set(CMAKE_CROSSCOMPILING on)
 set(CMAKE_STATIC_LIBRARY_SUFFIX ".a")
 set(CMAKE_STATIC_LIBRARY_PREFIX "lib")
-set(CMAKE_EXECUTABLE_SUFFIX ".elf")
 set(WIN32)
 set(APPLE)
 set(UNIX)
@@ -23,8 +22,8 @@ if (NOT DEFINED CMAKE_AVR_MCU)
     message(FATAL_ERROR "must define CMAKE_AVR_MCU")
 endif()
 
-if (NOT DEFINED CMAKE_AVR_F_CPU)
-    message(FATAL_ERROR "must define CMAKE_AVR_F_CPU")
+if (NOT DEFINED CMAKE_AVR_MCU)
+    message(FATAL_ERROR "must define CMAKE_AVR_MCU")
 endif()
 
 set(CMAKE_C_COMPILER ${CMAKE_AVR_CC})
@@ -48,14 +47,14 @@ set(CMAKE_ASM_COMPILE_OBJECT "<CMAKE_ASM_COMPILER> ${CMAKE_COMPILE_OBJECT_PARAME
 
 set(CMAKE_EXE_LINKER_FLAGS_INIT "-Wl,--gc-sections -Wl,--relax")
 
-set(CMAKE_LINK_EXECUTABLE_PARAMETERS "<FLAGS> <OBJECTS> -o <TARGET>${CMAKE_EXECUTABLE_SUFFIX} <CMAKE_C_LINK_FLAGS> <LINK_FLAGS> -Wl,-Map=<TARGET_BASE>.map,--cref <LINK_LIBRARIES>")
+set(CMAKE_LINK_EXECUTABLE_PARAMETERS "<FLAGS> <OBJECTS> -o <TARGET>.elf <CMAKE_C_LINK_FLAGS> <LINK_FLAGS> -Wl,-Map=<TARGET_BASE>.map,--cref <LINK_LIBRARIES>")
 set(CMAKE_LINK_EXECUTABLE_AFTER 
-    "\"${CMAKE_AVR_OBJCOPY}\" -O ihex -R .eeprom -R .fuse -R .lock -R .signature <TARGET_BASE>${CMAKE_EXECUTABLE_SUFFIX} <TARGET_BASE>.hex"
-    "\"${CMAKE_AVR_OBJCOPY}\" -O ihex -j .eeprom --set-section-flags=.eeprom=\"alloc,load\" --change-section-lma .eeprom=0 --no-change-warnings <TARGET_BASE>${CMAKE_EXECUTABLE_SUFFIX} <TARGET_BASE>.eep"
-    "\"${CMAKE_AVR_OBJCOPY}\" -O binary -R .eeprom -R .fuse -R .lock -R .signature <TARGET_BASE>${CMAKE_EXECUTABLE_SUFFIX} <TARGET_BASE>.bin"
-    "\"${CMAKE_AVR_OBJCOPY}\" -h -d -S -z <TARGET_BASE>${CMAKE_EXECUTABLE_SUFFIX} > <TARGET_BASE>.lss"
-    "\"${CMAKE_AVR_NM}\" -n <TARGET_BASE>${CMAKE_EXECUTABLE_SUFFIX} > <TARGET_BASE>.sym"
-    "\"${CMAKE_AVR_SIZE}\" --mcu=${CMAKE_AVR_MCU} --format=avr <TARGET_BASE>${CMAKE_EXECUTABLE_SUFFIX} > <TARGET_BASE>.size")
+    "\"${CMAKE_AVR_OBJCOPY}\" -O ihex -R .eeprom -R .fuse -R .lock -R .signature <TARGET_BASE>.elf <TARGET_BASE>.hex"
+    "\"${CMAKE_AVR_OBJCOPY}\" -O ihex -j .eeprom --set-section-flags=.eeprom=\"alloc,load\" --change-section-lma .eeprom=0 --no-change-warnings <TARGET_BASE>.elf <TARGET_BASE>.eep"
+    "\"${CMAKE_AVR_OBJCOPY}\" -O binary -R .eeprom -R .fuse -R .lock -R .signature <TARGET_BASE>.elf <TARGET>"
+    "\"${CMAKE_AVR_OBJCOPY}\" -h -d -S -z <TARGET_BASE>.elf > <TARGET_BASE>.lss"
+    "\"${CMAKE_AVR_NM}\" -n <TARGET_BASE>.elf > <TARGET_BASE>.sym"
+    "\"${CMAKE_AVR_SIZE}\" --mcu=${CMAKE_AVR_MCU} --format=avr <TARGET_BASE>.elf > <TARGET_BASE>.size")
 if (CMAKE_AVR_PERL)
     list(APPEND CMAKE_LINK_EXECUTABLE_AFTER "\"${CMAKE_AVR_PERL}\" \"${CMAKE_CURRENT_LIST_DIR}\"/avstack.pl <OBJECTS> > <TARGET_BASE>.stack")
 endif()

@@ -1,23 +1,8 @@
-cmake_minimum_required(VERSION 3.21)
+set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake" ${CMAKE_MODULE_PATH})
 
-set(CMAKE_CONFIGURATION_TYPES Release;Debug)
-set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
+cmake_minimum_required(VERSION 3.23)
+project(SwitchScriptProject C CXX)
 
-project(SwitchScript C)
+include(Rupkg)
 
-set(SWITCH_SCRIPT_THIRD_PARTY_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/third_party)
-set(SWITCH_SCRIPT_THIRD_PARTY_BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR}/third_party)
-
-function(switch_script_require_package package_name)
-    add_subdirectory(${SWITCH_SCRIPT_THIRD_PARTY_SOURCE_DIR}/${package_name} ${SWITCH_SCRIPT_THIRD_PARTY_BINARY_DIR}/${package_name} EXCLUDE_FROM_ALL)
-endfunction()
-
-if ("${CMAKE_SYSTEM_NAME}" STREQUAL "AVR")
-    set(SWITCH_SCRIPT_BUILD_AVR on)
-else()
-    set(SWITCH_SCRIPT_BUILD_HOST on)
-endif()
-
-add_subdirectory(vm)
-add_subdirectory(tools)
-add_subdirectory(server)
+rupkg_run()

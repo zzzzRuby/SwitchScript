@@ -1,0 +1,2 @@
+set(RUPKG_EXPORT_TARGETS jasper)
+set(RUPKG_REQUIRED_PACKAGES libjpeg-turbo)

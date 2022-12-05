@@ -1,0 +1,127 @@
+set(RUPKG_EXPORT_TARGETS
+    EntryPointImplementation QtLibraryInfo Bootstrap
+    EntryPointPrivate_timestamp Platform
+    cmake_automoc_parser qvkgen qlalr qtpaths windeployqt macdeployqt linuxdeployqt moc uic rcc qsb
+    androiddeployqt androidtestrunner tracegen qmake qdbuscpp2xml qdbusxml2cpp
+    host_tools bootstrap_tools qtshadertools_tools benchmark qtbase_qmake qmodule_pri
+    qt_plugins qt_internal_plugins qpa_plugins qpa_default_plugins
+    docs qch_docs html_docs install_docs install_qch_docs install_html_docs prepare_docs generate_docs)
+set(RUPKG_REQUIRED_PACKAGES libjpeg-turbo libpng zlib zstd freetype harfbuzz libwebp double-conversion jasper)
+set(RUPKG_SUPPORT_PLATFORMS windows linux macos)
+
+macro(__qt_add_bundled name)
+    list(APPEND RUPKG_EXPORT_TARGETS Bundled${name} Bundled${name}_ext_pri)
+endmacro()
+
+macro(__qt_add_plugin plugin)
+    cmake_parse_arguments("args" "" "ALIAS;RESOURCES" "" ${ARGN})
+    if (args_ALIAS)
+        set(alias ${args_ALIAS})
+    else()
+        string(TOLOWER "${plugin}" alias)
+    endif()
+    list(APPEND RUPKG_EXPORT_TARGETS ${plugin}Plugin ${plugin}Plugin_init ${alias})
+    if (args_RESOURCES)
+        list(APPEND RUPKG_EXPORT_TARGETS ${plugin}Plugin_other_files)
+        foreach(i RANGE 1 ${args_RESOURCES})
+            list(APPEND RUPKG_EXPORT_TARGETS ${plugin}Plugin_resources_${i})
+        endforeach()
+    endif()
+endmacro()
+
+macro(__qt_add_docs name)
+    list(APPEND RUPKG_EXPORT_TARGETS
+        prepare_docs_${name} generate_docs_${name}
+        docs_${name} install_docs_${name}
+        qch_docs_${name} install_qch_docs_${name}
+        html_docs_${name} install_html_docs_${name}
+        qch_repo_docs_${name} qch_top_level_docs_${name}
+        generate_repo_docs_${name} generate_top_level_docs_${name}
+        qattributionsscanner_${name})
+endmacro()
+
+macro(__qt_add_module module)
+    cmake_parse_arguments("args" "" "RESOURCES" "" ${ARGN})
+    list(APPEND RUPKG_EXPORT_TARGETS Qt6::${module} ${module}_lib_pri ${module}_automoc_json_extraction)
+    if (args_RESOURCES)
+        list(APPEND RUPKG_EXPORT_TARGETS ${module}_other_files)
+        foreach(i RANGE 1 ${args_RESOURCES})
+            list(APPEND RUPKG_EXPORT_TARGETS ${module}_resources_${i})
+        endforeach()
+    endif()
+    __qt_add_docs(${module})
+endmacro()
+
+macro(__qt_add_repo repo)
+    list(APPEND RUPKG_EXPORT_TARGETS ${repo} ${repo}_src)
+    __qt_add_docs(${repo})
+endmacro()
+
+__qt_add_bundled(Glslang_Glslang)
+__qt_add_bundled(Glslang_Oglcompiler)
+__qt_add_bundled(Glslang_Osdependent)
+__qt_add_bundled(Glslang_Spirv)
+__qt_add_bundled(Pcre2)
+__qt_add_bundled(Spirv_Cross)
+
+__qt_add_repo(qtbase)
+__qt_add_repo(qtimageformats)
+__qt_add_repo(qtmultimedia)
+__qt_add_repo(qtshadertools)
+__qt_add_repo(qtsvg)
+
+__qt_add_module(Core)
+__qt_add_module(Gui RESOURCES 1)
+__qt_add_module(Platform)
+__qt_add_module(DBus)
+__qt_add_module(SvgWidgets)
+__qt_add_module(Svg)
+__qt_add_module(Xml)
+__qt_add_module(Widgets RESOURCES 3)
+__qt_add_module(Multimedia RESOURCES 2)
+__qt_add_module(MultimediaWidgets)
+__qt_add_module(ShaderTools)
+__qt_add_module(Network)
+__qt_add_module(Concurrent)
+__qt_add_module(FbSupportPrivate)
+__qt_add_module(PrintSupport RESOURCES 2)
+__qt_add_module(DeviceDiscoverySupportPrivate)
+__qt_add_module(Test)
+
+__qt_add_docs(ImageFormats)
+__qt_add_docs(qmake)
+
+__qt_add_plugin(QMinimalIntegration ALIAS qminimal)
+__qt_add_plugin(QOffscreenIntegration ALIAS qoffscreen)
+__qt_add_plugin(QWindowsDirect2DIntegration ALIAS qdirect2d RESOURCES 2)
+__qt_add_plugin(QWindowsIntegration ALIAS qwindows RESOURCES 2)
+__qt_add_plugin(QWindowsVistaStyle ALIAS qwindowsvistastyle)
+__qt_add_plugin(QCocoaIntegration ALIAS qcocoa RESOURCES 1)
+__qt_add_plugin(QMacStyle)
+__qt_add_plugin(QXcbIntegration)
+__qt_add_plugin(QLinuxFbIntegration)
+__qt_add_plugin(QComposePlatformInputContext)
+__qt_add_plugin(QEvdevMousen)
+__qt_add_plugin(QEvdevTouchScreen)
+__qt_add_plugin(QEvdevKeyboard)
+__qt_add_plugin(QEvdevTablet)
+__qt_add_plugin(QICNS)
+__qt_add_plugin(QTga)
+__qt_add_plugin(QTiff)
+__qt_add_plugin(QWbmp)
+__qt_add_plugin(QWebp)
+__qt_add_plugin(QGif)
+__qt_add_plugin(QICO)
+__qt_add_plugin(QJpeg)
+__qt_add_plugin(QSvg)
+__qt_add_plugin(QSvgIcon)
+__qt_add_plugin(QNLMNI ALIAS qnetworklistmanager)
+__qt_add_plugin(QSchannelBackend)
+__qt_add_plugin(QTlsBackendCertOnly ALIAS qcertonlybackend)
+__qt_add_plugin(QTlsBackendOpenSSL ALIAS qopensslbackend)
+__qt_add_plugin(QSCNetworkReachabilityNetworkInformation ALIAS qscnetworkreachability)
+__qt_add_plugin(QSecureTransportBackend)
+__qt_add_plugin(QMacHeif)
+__qt_add_plugin(QMacJp2)
+__qt_add_plugin(QJp2)
+__qt_add_plugin(QTuioTouch)

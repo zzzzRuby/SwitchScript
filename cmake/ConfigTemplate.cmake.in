@@ -1,0 +1,9 @@
+include(${CMAKE_CURRENT_LIST_DIR}/../RupkgInitialize.cmake)
+
+find_package(@PROJECT_NAME@Tools)
+
+include(${CMAKE_CURRENT_LIST_DIR}/${RUPKG_TRIPLE}/@PROJECT_NAME@Config.cmake)
+
+if (EXISTS ${CMAKE_CURRENT_LIST_DIR}/@PROJECT_NAME@Fucntions.cmake)
+    include(${CMAKE_CURRENT_LIST_DIR}/@PROJECT_NAME@Fucntions.cmake)
+endif()

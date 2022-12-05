@@ -1,0 +1,2 @@
+include(${CMAKE_CURRENT_LIST_DIR}/../RupkgInitialize.cmake)
+include(${CMAKE_CURRENT_LIST_DIR}/${RUPKG_HOST_TRIPLE}/@PROJECT_NAME@ToolsConfig.cmake)
